@@ -12,10 +12,15 @@
 --
 module Data.SuffixArray.Internal
 ( Alpha(..)
+, naive
+, naiveOne
 , prepare
 , prepareOne
 , suffixes
 ) where
+
+import           Data.List (sortBy)
+import           Data.Ord (comparing)
 
 -- | Yields the non-empty suffixes of a list in order of decreasing length.
 --
@@ -48,3 +53,17 @@ prepare = concat . zipWith (\a b -> b ++ [a]) sentinals . map (map Alpha)
 -- | Convenience function to `prepare` a single string.
 prepareOne :: [a] -> [Alpha a]
 prepareOne = prepare . pure
+
+-- | A naively implemented suffix array implementation which will be used
+-- for correctness checking and possibly to benchmark against. Shouldn't
+-- usually be used in production code, as it is quite slow.
+--
+-- O(n^2 lg n)
+-- (where n is the sum of the string lengths + the number of strings)
+naive :: Ord a => [[a]] -> [Int]
+naive =
+  map fst . sortBy (comparing snd) . zip [0 ..] . suffixes . prepare
+
+-- | Convenience wrapper around `naive` for a single string.
+naiveOne :: Ord a => [a] -> [Int]
+naiveOne = naive . pure
