@@ -1,0 +1,44 @@
+name:                suffix-array
+version:             0.1.0.0
+synopsis:            Simple and moderately efficient suffix array implementation
+description:         A simple implementation of a suffix array, with
+                     longest-common-prefix array that, while not
+                     asymptotically optimal, performs well in practice
+                     for medium use.
+homepage:            https://github.com/kadoban/suffix-array#readme
+bug-reports:         https://github.com/kadoban/suffix-array/issues
+license:             BSD3
+license-file:        LICENSE
+author:              Joshua Simmons
+maintainer:          joshua.simmons@emptypath.com
+copyright:           (c) 2017 Joshua Simmons
+category:            Data Structures
+build-type:          Simple
+-- extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+--  exposed-modules:
+  build-depends:       base >= 4.7 && < 5
+  default-language:    Haskell2010
+
+benchmark suffix-array-bench
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      bench
+  main-is:             Bench.hs
+  build-depends:       base
+                     , suffix-array
+  default-language:    Haskell2010
+
+test-suite suffix-array-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Test.hs
+  build-depends:       base
+                     , suffix-array
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/kadoban/suffix-array
