@@ -16,10 +16,11 @@ module Data.SuffixArray.Internal
 , naiveOne
 , prepare
 , prepareOne
+, rank
 , suffixes
 ) where
 
-import           Data.List (sortBy)
+import           Data.List (group, sortBy)
 import           Data.Ord (comparing)
 
 -- | Yields the non-empty suffixes of a list in order of decreasing length.
@@ -67,3 +68,14 @@ naive =
 -- | Convenience wrapper around `naive` for a single string.
 naiveOne :: Ord a => [a] -> [Int]
 naiveOne = naive . pure
+
+-- | Take a sorted list of elements and replace each value with an `Int`
+-- such that any comparisons between elements in the original list would
+-- yield exactly the same result in the output list.
+--
+-- i.e.: let rs = rank xs
+--        in all [ (xs!!i) `compare` (xs!!j) == (rs!!i) `compare` (rs!!j)
+--               | let idx = [0 .. length xs - 1], i <- idx, j <- idx
+--               ]
+rank :: Ord a => [a] -> [Int]
+rank = concat . zipWith (\n -> map (const n)) [0 ..] . group
