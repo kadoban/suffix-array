@@ -36,19 +36,27 @@ data SuffixArray a = SuffixArray
   deriving (Eq, Ord, Show)
 
 suffixArray :: Ord a => [[a]] -> SuffixArray a
-suffixArray xs = SuffixArray ss as
+suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
   where
     ps = prepare xs
     n = length ps
     n' = n - 1
+    -- we represent each suffix as the number of characters we have
+    -- to drop from the original string to get that suffix
+    --
+    -- and then we order them by their first letter and convert those
+    -- first letters into `rank`s, which are `Int`s that preserve the
+    -- same `Ord`ering. This is useful so we can sort them more easily
+    -- (allows using counting sort), and will help code reuse in the
+    -- main body.
+    --
+    -- Note: We actually don't care about the ordering of suffixes yet,
+    -- it's just necessary to use the `rank` function.
     orderedByFirst = sortBy (comparing snd) . zip [0 ..] $ ps
     ranked = let (as, bs) = unzip orderedByFirst
               in zip as (rank bs)
-    as = A.listArray (0, n') ps
     ss :: UArray Int Int
     ss = runSTUArray $ do
-      s <- newListArray (0, n') (map fst ranked)
-      r <- newArray_ (0, n')
+      s <- newListArray (0, n') (map fst ranked) -- the suffixes
+      r <- newArray_ (0, n') -- the rank of each suffix
       forM_ ranked $ \(suffix, rank) -> writeArray r suffix rank
-      s' <- newArray_ (0, n')
-      r' <- newArray_ (0, n')
