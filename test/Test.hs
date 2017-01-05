@@ -37,7 +37,9 @@ basics = testGroup "tests of basic underlying utils and etc."
 naives :: TestTree
 naives = testGroup "test the naive implementation to make sure it works"
   [ testCase "banana" $
-      naiveOne "banana" @?= [6, 5, 3, 1, 0, 4, 2]
+      naiveOne "banana" @?= [6, 5, 3, 1, 0, 4, 2] -- wikipedia example
+  , testCase "banana hammock" $ -- hand calculated
+      naive ["banana", "hammock"] @?= [6,14,5,8,3,1,0,12,7,13,9,10,4,2,11]
   , QC.testProperty "length" $
       \xs -> length (xs :: [Char]) + 1 == length (naiveOne xs)
   , QC.testProperty "distinct" $
@@ -46,6 +48,10 @@ naives = testGroup "test the naive implementation to make sure it works"
   , QC.testProperty "distinct2" $
       \xs -> let xs' = naiveOne (xs :: [Int])
               in sort xs' == distinct xs'
+  , QC.testProperty "length of many" $
+      \xs -> sum (map length xs) + length (xs :: [[Char]]) == length (naive xs)
+  , QC.testProperty "empty first" $
+      \xs -> head (naiveOne xs) == length (xs :: [Integer])
   ]
 
 distinct :: Ord a => [a] -> [a]
