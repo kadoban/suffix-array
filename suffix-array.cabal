@@ -39,7 +39,8 @@ test-suite suffix-array-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Test.hs
-  build-depends:       base
+  build-depends:       array
+                     , base
                      , containers
                      , suffix-array
                      , tasty

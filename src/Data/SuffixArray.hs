@@ -1,3 +1,6 @@
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 -- |
 -- Module      :  Data.SuffixArray
 -- Copyright   :  Joshua Simmons 2017
@@ -9,18 +12,22 @@
 --
 module Data.SuffixArray
 ( SuffixArray(..)
+, suffixArray
+, suffixArrayOne
 ) where
 
-import           Control.Monad (forM_)
+import           Control.Monad (forM_, when)
 import           Control.Monad.ST (ST)
 import qualified Data.Array.IArray as A
 import           Data.Array.IArray (Array)
 import           Data.Array.MArray ( newArray, newListArray, newArray_
                                    , readArray, writeArray)
-import           Data.Array.ST (STUArray, runSTUArray)
+import           Data.Array.ST (STUArray, runSTUArray, getElems)
 import           Data.Array.Unboxed (UArray)
 import           Data.List (sortBy)
 import           Data.Ord (comparing)
+import           Data.STRef ( STRef, newSTRef, readSTRef, writeSTRef
+                            , modifySTRef')
 
 import           Data.SuffixArray.Internal
 
@@ -56,7 +63,55 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
     ranked = let (as, bs) = unzip orderedByFirst
               in zip as (rank bs)
     ss :: UArray Int Int
-    ss = runSTUArray $ do
+    ss = runSTUArray ss'
+    ss' :: forall s. ST s (STUArray s Int Int)
+    ss' = do
       s <- newListArray (0, n') (map fst ranked) -- the suffixes
       r <- newArray_ (0, n') -- the rank of each suffix
-      forM_ ranked $ \(suffix, rank) -> writeArray r suffix rank
+      forM_ ranked $ uncurry (writeArray r)
+      t <- newArray_ (0, n') -- scratch array
+      go 1 s r t
+    go :: forall s. Int
+                 -> STUArray s Int Int
+                 -> STUArray s Int Int
+                 -> STUArray s Int Int
+                 -> ST s (STUArray s Int Int)
+    go k s r t
+      | k >= n = return s
+      | otherwise = do
+      let getR i x = let ix = i + x
+                      in if ix >= n then return 0
+                                    else readArray r ix
+          csort i s s' = do
+            (c :: STUArray s Int Int) <- newArray (0, n') 0 -- counts
+            let f = getR i
+            forM_ [0 .. n'] $ \x -> do
+              x' <- f x
+              v <- readArray c x'
+              writeArray c x' (v+1)
+            -- replace each element in 'c' with the starting index of
+            -- elements with that value
+            getElems c >>= (mapM_ (uncurry (writeArray c))
+                          . zip [0 ..] . scanl (+) 0)
+            forM_ [0 .. n'] $ \x -> do
+              x' <- readArray s x -- which suffix
+              r' <- f x' -- rank of it
+              idx <- readArray c r'
+              writeArray c r' (idx + 1) -- next suffix with this rank goes
+              writeArray s' idx x'
+      csort k s t -- these two counting sorts comprise a radix sort of the
+      csort 0 t s -- suffixes by their rank pairs
+      -- now re-rank the suffixes in order
+      prevVal <- ((,) <$> getR 0 0 <*> getR k 0) >>= newSTRef
+      nextRank <- newSTRef 0
+      forM_ [0 .. n'] $ \i -> do
+        x <- readArray s i
+        val <- (,) <$> getR 0 x <*> getR k x
+        val' <- readSTRef prevVal
+        when (val /= val') $ modifySTRef' nextRank succ
+        readSTRef nextRank >>= writeArray t x
+        writeSTRef prevVal val
+      go (k*2) s t r -- and double the size of the prefix of each we're sorting
+
+suffixArrayOne :: Ord a => [a] -> SuffixArray a
+suffixArrayOne = suffixArray . pure

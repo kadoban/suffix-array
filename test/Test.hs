@@ -11,6 +11,7 @@ module Main
 ( main
 ) where
 
+import qualified Data.Array.IArray as A
 import qualified Data.Set as S
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -18,13 +19,14 @@ import qualified Test.Tasty.QuickCheck as QC
 
 import           Data.List (sort, tails)
 
+import           Data.SuffixArray
 import           Data.SuffixArray.Internal
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [basics, naives]
+tests = testGroup "Tests" [basics, naives, actual]
 
 basics :: TestTree
 basics = testGroup "tests of basic underlying utils and etc."
@@ -52,6 +54,14 @@ naives = testGroup "test the naive implementation to make sure it works"
       \xs -> sum (map length xs) + length (xs :: [[Char]]) == length (naive xs)
   , QC.testProperty "empty first" $
       \xs -> head (naiveOne xs) == length (xs :: [Integer])
+  ]
+
+actual :: TestTree
+actual = testGroup "test the actual implementation to make sure it works"
+  [ QC.testProperty "against naiveOne" $
+      \xs -> naiveOne (xs :: [Int]) == A.elems (toSuffixes (suffixArrayOne xs))
+  , QC.testProperty "against naive" $
+      \xs -> naive (xs :: [[Int]]) == A.elems (toSuffixes (suffixArray xs))
   ]
 
 distinct :: Ord a => [a] -> [a]
