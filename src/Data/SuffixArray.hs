@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- |
 -- Module      :  Data.SuffixArray
 -- Copyright   :  Joshua Simmons 2017
@@ -42,6 +42,8 @@ data SuffixArray a = SuffixArray
                        }
   deriving (Eq, Ord, Show)
 
+type Arr s = STUArray s Int Int
+
 suffixArray :: Ord a => [[a]] -> SuffixArray a
 suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
   where
@@ -63,19 +65,13 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
     ranked = let (as, bs) = unzip orderedByFirst
               in zip as (rank bs)
     ss :: UArray Int Int
-    ss = runSTUArray ss'
-    ss' :: forall s. ST s (STUArray s Int Int)
-    ss' = do
+    ss = runSTUArray $ do
       s <- newListArray (0, n') (map fst ranked) -- the suffixes
       r <- newArray_ (0, n') -- the rank of each suffix
       forM_ ranked $ uncurry (writeArray r)
       t <- newArray_ (0, n') -- scratch array
       go 1 s r t
-    go :: forall s. Int
-                 -> STUArray s Int Int
-                 -> STUArray s Int Int
-                 -> STUArray s Int Int
-                 -> ST s (STUArray s Int Int)
+    go :: forall s. Int -> Arr s -> Arr s -> Arr s -> ST s (Arr s)
     go k s r t
       | k >= n = return s
       | otherwise = do
@@ -83,7 +79,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
                       in if ix >= n then return 0
                                     else readArray r ix
           csort i s s' = do
-            (c :: STUArray s Int Int) <- newArray (0, n') 0 -- counts
+            (c :: Arr s) <- newArray (0, n') 0 -- counts
             let f = getR i
             forM_ [0 .. n'] $ \x -> do
               x' <- f x
