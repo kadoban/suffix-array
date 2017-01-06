@@ -62,6 +62,8 @@ actual = testGroup "test the actual implementation to make sure it works"
       \xs -> naiveOne (xs :: [Int]) == A.elems (toSuffixes (suffixArrayOne xs))
   , QC.testProperty "against naive" $
       \xs -> naive (xs :: [[Int]]) == A.elems (toSuffixes (suffixArray xs))
+  , testCase "[0]" $
+      A.elems (toSuffixes $ suffixArrayOne [0]) @?= [1, 0]
   ]
 
 distinct :: Ord a => [a] -> [a]
