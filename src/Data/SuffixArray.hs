@@ -98,7 +98,8 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
       csort k s t -- these two counting sorts comprise a radix sort of the
       csort 0 t s -- suffixes by their rank pairs
       -- now re-rank the suffixes in order
-      prevVal <- ((,) <$> getR 0 0 <*> getR k 0) >>= newSTRef
+      fstSuffix <- readArray s 0
+      prevVal <- ((,) <$> getR 0 fstSuffix <*> getR k fstSuffix) >>= newSTRef
       nextRank <- newSTRef 0
       forM_ [0 .. n'] $ \i -> do
         x <- readArray s i
