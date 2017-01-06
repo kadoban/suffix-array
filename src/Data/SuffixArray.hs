@@ -88,7 +88,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
             -- replace each element in 'c' with the starting index of
             -- elements with that value
             getElems c >>= (mapM_ (uncurry (writeArray c))
-                          . zip [0 ..] . scanl (+) 0)
+                          . zip [0 .. n'] . scanl (+) 0)
             forM_ [0 .. n'] $ \x -> do
               x' <- readArray s x -- which suffix
               r' <- f x' -- rank of it
