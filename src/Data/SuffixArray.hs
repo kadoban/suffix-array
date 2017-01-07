@@ -99,12 +99,12 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
             getElems c >>= (mapM_ (uncurry (writeArray c))
                           . zip [0 .. n] . scanl (+) 0)
             elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze s
-            forM_ elemsS $ \x' -> do
-              r' <- f x' -- rank of it
+            forM_ elemsS $ \x -> do
+              r' <- f x -- rank of it
               idx <- readArray c r' -- where it goes, based on its rank
               writeArray c r' (idx + 1) -- next suffix with this rank goes
                                         -- one later
-              writeArray s' idx x'
+              writeArray s' idx x
       csort k s t -- these two counting sorts comprise a radix sort of the
       csort 0 t s -- suffixes by their rank pairs
       -- now re-rank the suffixes in order
