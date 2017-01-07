@@ -91,8 +91,9 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
           csort i s s' = do
             (c :: Arr s) <- newArray (0, n) 0 -- counts
             let f = getR i
-            forM_ [0 .. n] $ \x -> do -- count how many of each rank there are
-              x' <- f x
+            writeArray c 0 i
+            forM_ [i .. n] $ \x -> do -- count how many of each rank there are
+              x' <- readArray r x
               v <- readArray c x'
               writeArray c x' (v+1)
             -- replace each element in 'c' with the starting index of
