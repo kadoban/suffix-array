@@ -52,11 +52,10 @@ type Arr s = STUArray s Int Int
 -- O(n lg n) time
 -- (where n is the sum of the string lengths + the number of strings)
 suffixArray :: Ord a => [[a]] -> SuffixArray a
-suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
+suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
   where
     ps = prepare xs
-    n = length ps
-    n' = n - 1
+    n = length ps - 1
     -- we represent each suffix as the number of characters we have
     -- to drop from the original string to get that suffix
     --
@@ -73,32 +72,32 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
               in zip as (rank bs)
     ss :: UArray Int Int
     ss = runSTUArray $ do
-      s <- newListArray (0, n') (map fst ranked) -- the suffixes
-      r <- newArray_ (0, n') -- the rank of each suffix
+      s <- newListArray (0, n) (map fst ranked) -- the suffixes
+      r <- newArray_ (0, n) -- the rank of each suffix
       forM_ ranked $ uncurry (writeArray r)
-      t <- newArray_ (0, n') -- scratch array
+      t <- newArray_ (0, n) -- scratch array
       go 1 s r t
     go :: forall s. Int -> Arr s -> Arr s -> Arr s -> ST s (Arr s)
     go k s r t
-      | k >= n = return s
+      | k > n = return s
       | otherwise = do
       let getR 0 x = readArray r x
           getR i x = let ix = i + x
-                      in if ix > n' then return 0
-                                    else readArray r ix
+                      in if ix > n then return 0
+                                   else readArray r ix
           -- counting sort of suffixes, from s into s'
           -- ordered by the rank of suffix i + x, for suffix x
           csort i s s' = do
-            (c :: Arr s) <- newArray (0, n') 0 -- counts
+            (c :: Arr s) <- newArray (0, n) 0 -- counts
             let f = getR i
-            forM_ [0 .. n'] $ \x -> do -- count how many of each rank there are
+            forM_ [0 .. n] $ \x -> do -- count how many of each rank there are
               x' <- f x
               v <- readArray c x'
               writeArray c x' (v+1)
             -- replace each element in 'c' with the starting index of
             -- elements with that value
             getElems c >>= (mapM_ (uncurry (writeArray c))
-                          . zip [0 .. n'] . scanl (+) 0)
+                          . zip [0 .. n] . scanl (+) 0)
             elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze s
             forM_ elemsS $ \x' -> do
               r' <- f x' -- rank of it
@@ -123,7 +122,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
         readSTRef nextRank >>= writeArray t x
         writeSTRef prevVal val
       maxRank <- readSTRef nextRank
-      if maxRank < n'
+      if maxRank < n
         then go (k*2) s t r -- double the size of the prefix we're sorting by
         else return s -- ranks are already unique for all, stop early
 
