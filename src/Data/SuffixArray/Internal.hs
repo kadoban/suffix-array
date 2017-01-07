@@ -66,6 +66,9 @@ naive =
   map fst . sortBy (comparing snd) . zip [0 ..] . suffixes . prepare
 
 -- | Convenience wrapper around `naive` for a single string.
+--
+-- O(n^2 lg n)
+-- (where n is the length of the string)
 naiveOne :: Ord a => [a] -> [Int]
 naiveOne = naive . pure
 
