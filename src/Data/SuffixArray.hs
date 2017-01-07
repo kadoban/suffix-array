@@ -25,6 +25,7 @@ import           Data.Array.MArray ( newArray, newListArray, newArray_
                                    , readArray, writeArray)
 import           Data.Array.ST (STUArray, runSTUArray, getElems)
 import           Data.Array.Unboxed (UArray)
+import           Data.Array.Unsafe (unsafeFreeze)
 import           Data.List (sortBy)
 import           Data.Ord (comparing)
 import           Data.STRef ( STRef, newSTRef, readSTRef, writeSTRef
@@ -97,8 +98,8 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
             -- elements with that value
             getElems c >>= (mapM_ (uncurry (writeArray c))
                           . zip [0 .. n'] . scanl (+) 0)
-            forM_ [0 .. n'] $ \x -> do
-              x' <- readArray s x -- which suffix
+            elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze s
+            forM_ elemsS $ \x' -> do
               r' <- f x' -- rank of it
               idx <- readArray c r' -- where it goes, based on its rank
               writeArray c r' (idx + 1) -- next suffix with this rank goes
