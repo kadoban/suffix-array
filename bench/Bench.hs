@@ -14,6 +14,7 @@ module Main
 import           Criterion.Main
 import           System.Random (newStdGen, randoms)
 
+import           Data.SuffixArray
 import           Data.SuffixArray.Internal
 
 main :: IO ()
@@ -33,7 +34,8 @@ main = do
                        , (revs, "revs"), (reps, "reps")]
     , k <- [5, 40, 90, 200, 1000]
     , sz <- [5000, 10000 .. 100000] ++ [200000]
-    , (var, var') <- [(naiveOne, "naiveOne")]
+    , (var, var') <- [ (naiveOne, "naiveOne")
+                     , (justSuffixes . suffixArrayOne, "suffixArrayOne")]
     , interesting var' sz k dist'
     ]
    ]

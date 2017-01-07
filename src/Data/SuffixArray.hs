@@ -11,7 +11,8 @@
 -- Suffix array library main module
 --
 module Data.SuffixArray
-( SuffixArray(..)
+( justSuffixes
+, SuffixArray(..)
 , suffixArray
 , suffixArrayOne
 ) where
@@ -112,3 +113,6 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
 
 suffixArrayOne :: Ord a => [a] -> SuffixArray a
 suffixArrayOne = suffixArray . pure
+
+justSuffixes :: SuffixArray a -> [Int]
+justSuffixes = A.elems . toSuffixes
