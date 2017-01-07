@@ -87,6 +87,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
                                    else readArray r ix
           -- counting sort of suffixes, from s into s'
           -- ordered by the rank of suffix i + x, for suffix x
+          -- (that is, suffix x without its first i characters)
           csort i s s' = do
             (c :: Arr s) <- newArray (0, n) 0 -- counts
             let f = getR i
