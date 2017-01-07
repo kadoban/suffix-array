@@ -111,8 +111,8 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
       fstSuffix <- readArray s 0
       prevVal <- ((,) <$> getR 0 fstSuffix <*> getR k fstSuffix) >>= newSTRef
       nextRank <- newSTRef 0
-      forM_ [0 .. n'] $ \i -> do
-        x <- readArray s i
+      elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze s
+      forM_ elemsS $ \x -> do
         val <- (,) <$> getR 0 x <*> getR k x
         val' <- readSTRef prevVal
         -- if its old rank pair is the same as of the previous suffix
