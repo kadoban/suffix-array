@@ -45,6 +45,11 @@ data SuffixArray a = SuffixArray
 
 type Arr s = STUArray s Int Int
 
+-- | Compute the suffix array of the given string(s) concatenated together
+-- with `Sentinal`s after each.
+--
+-- O(n lg n) time
+-- (where n is the sum of the string lengths + the number of strings)
 suffixArray :: Ord a => [[a]] -> SuffixArray a
 suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
   where
@@ -79,10 +84,12 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
       let getR i x = let ix = i + x
                       in if ix >= n then return 0
                                     else readArray r ix
+          -- counting sort of suffixes, from s into s'
+          -- ordered by the rank of suffix i + x, for suffix x
           csort i s s' = do
             (c :: Arr s) <- newArray (0, n') 0 -- counts
             let f = getR i
-            forM_ [0 .. n'] $ \x -> do
+            forM_ [0 .. n'] $ \x -> do -- count how many of each rank there are
               x' <- f x
               v <- readArray c x'
               writeArray c x' (v+1)
@@ -93,8 +100,9 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
             forM_ [0 .. n'] $ \x -> do
               x' <- readArray s x -- which suffix
               r' <- f x' -- rank of it
-              idx <- readArray c r'
+              idx <- readArray c r' -- where it goes, based on its rank
               writeArray c r' (idx + 1) -- next suffix with this rank goes
+                                        -- one later
               writeArray s' idx x'
       csort k s t -- these two counting sorts comprise a radix sort of the
       csort 0 t s -- suffixes by their rank pairs
@@ -106,13 +114,26 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
         x <- readArray s i
         val <- (,) <$> getR 0 x <*> getR k x
         val' <- readSTRef prevVal
+        -- if its old rank pair is the same as of the previous suffix
+        -- (in partially sorted order), it gets the same rank, otherwise
+        -- we increase by one
         when (val /= val') $ modifySTRef' nextRank succ
         readSTRef nextRank >>= writeArray t x
         writeSTRef prevVal val
-      go (k*2) s t r -- and double the size of the prefix of each we're sorting
+      nextRank' <- readSTRef nextRank
+      if nextRank' < n'
+        then go (k*2) s t r -- double the size of the prefix we're sorting by
+        else return s -- ranks are already unique for all, stop early
 
+-- | Convenience function to compute the suffix array of a single string.
+-- (Still gets a `Sentinal` at the end)
+--
+-- O(n lg n)
+-- (where n is the length of the string)
 suffixArrayOne :: Ord a => [a] -> SuffixArray a
 suffixArrayOne = suffixArray . pure
 
+-- | Convenience function to just give a list of the suffixes in
+-- lexicographic order.
 justSuffixes :: SuffixArray a -> [Int]
 justSuffixes = A.elems . toSuffixes
