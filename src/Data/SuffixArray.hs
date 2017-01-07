@@ -121,8 +121,8 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
         when (val /= val') $ modifySTRef' nextRank succ
         readSTRef nextRank >>= writeArray t x
         writeSTRef prevVal val
-      nextRank' <- readSTRef nextRank
-      if nextRank' < n'
+      maxRank <- readSTRef nextRank
+      if maxRank < n'
         then go (k*2) s t r -- double the size of the prefix we're sorting by
         else return s -- ranks are already unique for all, stop early
 
