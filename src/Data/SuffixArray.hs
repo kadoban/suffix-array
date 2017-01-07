@@ -82,8 +82,9 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n') ps)
     go k s r t
       | k >= n = return s
       | otherwise = do
-      let getR i x = let ix = i + x
-                      in if ix >= n then return 0
+      let getR 0 x = readArray r x
+          getR i x = let ix = i + x
+                      in if ix > n' then return 0
                                     else readArray r ix
           -- counting sort of suffixes, from s into s'
           -- ordered by the rank of suffix i + x, for suffix x
