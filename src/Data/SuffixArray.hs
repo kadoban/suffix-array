@@ -67,8 +67,8 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
     --
     -- Note: We actually don't care about the ordering of suffixes yet,
     -- it's just necessary to use the `rank` function.
-    orderedByFirst = sortBy (comparing snd) . zip [0 ..] $ ps
-    ranked = let (as, bs) = unzip orderedByFirst
+    orderedByHead = sortBy (comparing snd) . zip [0 ..] $ ps
+    ranked = let (as, bs) = unzip orderedByHead
               in zip as (rank bs)
     ss :: UArray Int Int
     ss = runSTUArray $ do
