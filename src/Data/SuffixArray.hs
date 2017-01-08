@@ -76,9 +76,10 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
       r <- newArray_ (0, n) -- the rank of each suffix
       forM_ ranked $ uncurry (writeArray r)
       t <- newArray_ (0, n) -- scratch array
-      go 1 s r t
-    go :: forall s. Int -> Arr s -> Arr s -> Arr s -> ST s (Arr s)
-    go k s r t
+      c <- newArray_ (0, n) -- counts array
+      go 1 s r t c
+    go :: forall s. Int -> Arr s -> Arr s -> Arr s -> Arr s -> ST s (Arr s)
+    go k s r t c
       | k > n = return s
       | otherwise = do
       let getR 0 x = readArray r x
@@ -89,7 +90,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
           -- ordered by the rank of suffix i + x, for suffix x
           -- (that is, suffix x without its first i characters)
           csort i s s' = do
-            (c :: Arr s) <- newArray (0, n) 0 -- counts
+            forM_ [0 .. n] $ flip (writeArray c) 0 -- zero out the counts
             let f = getR i
             -- count how many of each rank there are
             writeArray c 0 i -- takes care of all that would be automatically 0
@@ -99,8 +100,11 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
               writeArray c x' (v+1)
             -- replace each element in 'c' with the starting index of
             -- elements with that value
-            getElems c >>= (mapM_ (uncurry (writeArray c))
-                          . zip [0 .. n] . scanl (+) 0)
+            soFar <- newSTRef 0
+            forM_ [0 .. n] $ \x -> do
+              v <- readArray c x
+              readSTRef soFar >>= writeArray c x
+              modifySTRef' soFar (+v)
             elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze s
             forM_ elemsS $ \x -> do
               r' <- f x -- rank of it
@@ -126,7 +130,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
         writeSTRef prevVal val
       maxRank <- readSTRef nextRank
       if maxRank < n
-        then go (k*2) s t r -- double the size of the prefix we're sorting by
+        then go (k*2) s t r c -- double the size of the prefix we're sorting by
         else return s -- ranks are already unique for all, stop early
 
 -- | Convenience function to compute the suffix array of a single string.
