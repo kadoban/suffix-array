@@ -20,21 +20,20 @@ import           Data.SuffixArray.Internal
 main :: IO ()
 main = do
   g <- newStdGen
-  let rands, sorts, revs :: [Int]
+  let rands, sorts, reps :: [Int]
       rands = randoms g
       sorts = [1..]
-      revs = [1000000, 999999 ..]
       reps = concatMap (\x -> replicate x x) [1..]
-      allDists = [rands, sorts, reps, revs]
+      allDists = [rands, sorts, reps]
   defaultMain
    [
     bgroup "single_suffixes"
     [ bench (unwords [show (sz, k), dist', var'])
           $ whnf (\(n,k) -> var (take n (map (`mod` k) dist))) (sz, k)
     | (dist, dist') <- [ (rands, "rands"), (sorts, "sorts")
-                       , (revs, "revs"), (reps, "reps")]
-    , k <- [5, 40, 90, 200, 1000]
-    , sz <- [5000, 10000 .. 100000] ++ [200000]
+                       , (reps, "reps")]
+    , k <- [5, 40, 1000]
+    , sz <- [5000, 25000 .. 105000] ++ [200000]
     , (var, var') <- [ (naiveOne, "naiveOne")
                      , (justSuffixes . suffixArrayOne, "suffixArrayOne")]
     , interesting var' sz k dist'
@@ -44,8 +43,8 @@ main = do
           $ whnf (\(n,k) -> let n' = n `div` length allDists
                              in var (map (take n' . map (`mod` k)) allDists))
                  (sz, k)
-    | k <- [5, 40, 90, 200, 1000]
-    , sz <- [5000, 10000 .. 200000]
+    | k <- [5, 40, 1000]
+    , sz <- [5000, 35000 .. 215000]
     , (var, var') <- [ (naive, "naive")
                      , (justSuffixes . suffixArray, "suffixArray")]
     , interesting var' sz k "all"
@@ -53,11 +52,10 @@ main = do
    ]
 
 interesting "naiveOne" n k v
-  | n > 40000 && v `elem` ["sorts", "revs"] = False
-  | n > 100000 = False
+  | n > 50000 && v == "sorts" = False
+  | n > 100000 && v /= "rands" = False
   | otherwise = True
 interesting "naive" n k v
   | k < 40 && n > 60000 = False
-  | n > 100000 = False
   | otherwise = True
 interesting _ _ _ _ = True
