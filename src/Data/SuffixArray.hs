@@ -98,7 +98,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
               x' <- readArray r x
               v <- readArray c x'
               writeArray c x' (v+1)
-            -- replace each element in 'c' with the starting index of
+            -- replace each element in c with the starting index of
             -- elements with that value
             soFar <- newSTRef 0
             forM_ [0 .. n] $ \x -> do
