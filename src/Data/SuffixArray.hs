@@ -78,6 +78,9 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
       t <- newArray_ (0, n) -- scratch array
       c <- newArray_ (0, n) -- counts array
       go 1 s r t c
+    -- After each iteration of `go`, the suffixes are sorted by their
+    -- k*2 first characters. k doubles each time, and in each iteration
+    -- we do O(n) work and are then ready for the next iteration.
     go :: forall s. Int -> Arr s -> Arr s -> Arr s -> Arr s -> ST s (Arr s)
     go k s r t c
       | k > n = return s
