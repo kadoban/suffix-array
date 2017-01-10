@@ -52,10 +52,12 @@ type Arr s = STUArray s Int Int
 -- O(n lg n) time
 -- (where n is the sum of the string lengths + the number of strings)
 suffixArray :: Ord a => [[a]] -> SuffixArray a
-suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
+suffixArray xs = SuffixArray ss as
   where
-    ps = prepare xs
-    n = length ps - 1
+    n = snd $ A.bounds as
+    as = let ps = prepare xs
+             n = length ps - 1
+          in A.listArray (0, n) ps
     -- we represent each suffix as the number of characters we have
     -- to drop from the original string to get that suffix
     --
@@ -67,7 +69,7 @@ suffixArray xs = SuffixArray ss (A.listArray (0, n) ps)
     --
     -- Note: We actually don't care about the ordering of suffixes yet,
     -- it's just necessary to use the `rank` function.
-    orderedByHead = sortBy (comparing snd) . zip [0 ..] $ ps
+    orderedByHead = sortBy (comparing snd) . zip [0 ..] $ A.elems as
     ranked = let (as, bs) = unzip orderedByHead
               in zip as (rank bs)
     ss :: UArray Int Int
