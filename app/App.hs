@@ -17,4 +17,4 @@ main :: IO ()
 main = do
   let input :: [Int]
       input = take 400000 $ cycle [0 .. 199]
-  print . take 5 . justSuffixes . suffixArrayOne $ input
+  print . (\x -> (take 5 . justSuffixes $ x, take 5 . justLcp $ x)) . suffixArrayOne $ input
