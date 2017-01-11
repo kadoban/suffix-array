@@ -27,7 +27,18 @@ main = do
       allDists = [rands, sorts, reps]
   defaultMain
    [
-    bgroup "single_suffixes"
+    bgroup "lcp"
+    [ bench (unwords [show (sz, k), var'])
+          $ whnf (\(n,k) -> let n' = n `div` length allDists
+                             in var (map (take n' . map (`mod` k)) allDists))
+                 (sz, k)
+    | k <- [5, 40, 1000]
+    , sz <- [5000, 35000 .. 215000]
+    , (var, var') <- [ (naiveLcp, "naiveLcp")
+                     , (justLcp . suffixArray, "suffixArray(lcp)")]
+    , interesting var' sz k "lcp"
+    ]
+   ,bgroup "single_suffixes"
     [ bench (unwords [show (sz, k), dist', var'])
           $ whnf (\(n,k) -> var (take n (map (`mod` k) dist))) (sz, k)
     | (dist, dist') <- [ (rands, "rands"), (sorts, "sorts")
@@ -57,5 +68,9 @@ interesting "naiveOne" n k v
   | otherwise = True
 interesting "naive" n k v
   | k < 40 && n > 60000 = False
+  | otherwise = True
+interesting "naiveLcp" n k v
+  | k < 40 && n > 65000 = False
+  | k < 500 && n > 125000 = False
   | otherwise = True
 interesting _ _ _ _ = True
