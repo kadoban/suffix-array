@@ -29,8 +29,8 @@ main = do
    [
     bgroup "lcp"
     [ bench (unwords [show (sz, k), var'])
-          $ whnf (\(n,k) -> let n' = n `div` length allDists
-                             in var (map (take n' . map (`mod` k)) allDists))
+          $ whnf (\(n,a) -> let n' = n `div` length allDists
+                             in var (map (take n' . map (`mod` a)) allDists))
                  (sz, k)
     | k <- [5, 40, 1000]
     , sz <- [5000, 35000 .. 215000]
@@ -40,7 +40,7 @@ main = do
     ]
    ,bgroup "single_suffixes"
     [ bench (unwords [show (sz, k), dist', var'])
-          $ whnf (\(n,k) -> var (take n (map (`mod` k) dist))) (sz, k)
+          $ whnf (\(n,a) -> var (take n (map (`mod` a) dist))) (sz, k)
     | (dist, dist') <- [ (rands, "rands"), (sorts, "sorts")
                        , (reps, "reps")]
     , k <- [5, 40, 1000]
@@ -51,8 +51,8 @@ main = do
     ]
    ,bgroup "all_together"
     [ bench (unwords [show (sz, k), var'])
-          $ whnf (\(n,k) -> let n' = n `div` length allDists
-                             in var (map (take n' . map (`mod` k)) allDists))
+          $ whnf (\(n,a) -> let n' = n `div` length allDists
+                             in var (map (take n' . map (`mod` a)) allDists))
                  (sz, k)
     | k <- [5, 40, 1000]
     , sz <- [5000, 35000 .. 215000]
@@ -62,14 +62,15 @@ main = do
     ]
    ]
 
-interesting "naiveOne" n k v
+interesting :: String -> Int -> Int -> String -> Bool
+interesting "naiveOne" n _ v
   | n > 50000 && v == "sorts" = False
   | n > 100000 && v /= "rands" = False
   | otherwise = True
-interesting "naive" n k v
+interesting "naive" n k _
   | k < 40 && n > 60000 = False
   | otherwise = True
-interesting "naiveLcp" n k v
+interesting "naiveLcp" n k _
   | k < 40 && n > 65000 = False
   | k < 500 && n > 125000 = False
   | otherwise = True

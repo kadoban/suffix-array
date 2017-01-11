@@ -63,7 +63,7 @@ actual = testGroup "test the actual implementation to make sure it works"
   , QC.testProperty "against naive" $
       \xs -> naive (xs :: [[Int]]) == A.elems (toSuffixes (suffixArray xs))
   , testCase "[0]" $
-      A.elems (toSuffixes $ suffixArrayOne [0]) @?= [1, 0]
+      A.elems (toSuffixes $ suffixArrayOne [0 :: Integer]) @?= [1, 0]
   ]
 
 actualLcp :: TestTree
