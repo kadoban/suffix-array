@@ -142,10 +142,22 @@ suffixArray xs = SuffixArray ss as lcp
       if maxRank < n
         then go (k*2) s t r c -- double the size of the prefix we're sorting by
         else return s -- ranks are already unique for all, stop early
+    -- LCP array in the same order as the suffix array
     lcp = A.ixmap (0, n) (ss !) plcp
+    -- PLCP, permuted LCP array which is in order by position instead of
+    -- lexicographic order by the suffix being referred to.
+    --
+    -- Algoritm is courtesy of the paper "Permuted Longest-Common-Prefix
+    -- Array" by Kärkkäinen, et al.
+    -- http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.186.2185
+    -- (several PDFs available free online)
+    --
+    -- This runs in O(n) time
     plcp = runSTUArray plcp'
     plcp' :: forall s. ST s (Arr s)
     plcp' = do
+      -- keep track of what suffix is before each one, in lexicographic
+      -- order (the `first` one has none before it, so we treat it special)
       let first = ss ! 0
       (prev :: Arr s) <- newArray_ (0, n)
       forM_ [1 .. n] $ \i -> writeArray prev (ss ! i) (ss ! (i-1))
@@ -155,6 +167,12 @@ suffixArray xs = SuffixArray ss as lcp
         if i == first -- no previous prefix
           then writeSTRef len 0 >> writeArray res i 0
           else do
+            -- See the PLCP Array paper for details, but the important
+            -- part is that PLCP[i] >= PLCP[i-1] - 1, which lets us
+            -- skip a *lot* of character comparisons in the worst-case
+            --
+            -- This is otherwise essentially the same as the naive LCP
+            -- computation (see 'Data.SuffixArray.Internal.naiveLcp')
             len' <- readSTRef len
             prev' <- readArray prev i
             let suffixOff x = map (as !) [x ..]
