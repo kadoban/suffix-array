@@ -2,7 +2,7 @@ name:                suffix-array
 version:             0.1.0.0
 synopsis:            Simple and moderately efficient suffix array implementation
 description:         A simple implementation of a suffix array, with
-                     longest-common-prefix array that, while not
+                     longest-common-prefix array. While not
                      asymptotically optimal, performs well in practice
                      for medium use.
 homepage:            https://github.com/kadoban/suffix-array#readme
