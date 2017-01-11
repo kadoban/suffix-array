@@ -43,15 +43,15 @@ naives = testGroup "test the naive implementation to make sure it works"
   , testCase "banana hammock" $ -- hand calculated
       naive ["banana", "hammock"] @?= [6,14,5,8,3,1,0,12,7,13,9,10,4,2,11]
   , QC.testProperty "length" $
-      \xs -> length (xs :: [Char]) + 1 == length (naiveOne xs)
+      \xs -> length (xs :: String) + 1 == length (naiveOne xs)
   , QC.testProperty "distinct" $
-      \xs -> let xs' = naiveOne (xs :: [Char])
+      \xs -> let xs' = naiveOne (xs :: String)
               in length xs' == length (distinct xs')
   , QC.testProperty "distinct2" $
       \xs -> let xs' = naiveOne (xs :: [Int])
               in sort xs' == distinct xs'
   , QC.testProperty "length of many" $
-      \xs -> sum (map length xs) + length (xs :: [[Char]]) == length (naive xs)
+      \xs -> sum (map length xs) + length (xs :: [String]) == length (naive xs)
   , QC.testProperty "empty first" $
       \xs -> head (naiveOne xs) == length (xs :: [Integer])
   ]

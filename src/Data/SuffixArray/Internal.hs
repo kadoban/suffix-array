@@ -111,4 +111,4 @@ naiveLcpOne = naiveLcp . (:[])
 --               | let idx = [0 .. length xs - 1], i <- idx, j <- idx
 --               ]
 rank :: Ord a => [a] -> [Int]
-rank = concat . zipWith (\n -> map (const n)) [0 ..] . group
+rank = concat . zipWith (map . const) [0 ..] . group
