@@ -1,5 +1,5 @@
 name:                suffix-array
-version:             0.1.0.0
+version:             0.3.0.0
 synopsis:            Simple and moderately efficient suffix array implementation
 description:         A simple implementation of a suffix array, with
                      longest-common-prefix array. While not
