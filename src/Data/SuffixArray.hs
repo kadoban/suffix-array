@@ -11,12 +11,13 @@
 -- Suffix array library main module
 --
 module Data.SuffixArray
-( justAlphas
-, justLcp
-, justSuffixes
-, SuffixArray(..)
+( SuffixArray(..)
 , suffixArray
 , suffixArrayOne
+, Alpha(..)
+, justAlphas
+, justLcp
+, justSuffixes
 ) where
 
 import           Control.Monad (forM_, when)
@@ -35,7 +36,7 @@ import           Data.STRef ( STRef, newSTRef, readSTRef, writeSTRef
 
 import           Data.SuffixArray.Internal
 
--- | Holds the suffix array data
+-- | Holds the computed suffix array data
 data SuffixArray a = SuffixArray
                        { toSuffixes :: UArray Int Int
                          -- ^ The actual array of suffixes in lexicographic
