@@ -64,7 +64,13 @@ actual = testGroup "test the actual implementation to make sure it works"
       \xs -> naive (xs :: [[Int]]) == A.elems (toSuffixes (suffixArray xs))
   , testCase "[0]" $
       A.elems (toSuffixes $ suffixArrayOne [0 :: Integer]) @?= [1, 0]
+  , testCase "bunch of reps" $
+      naive [take 1000 reps, take 2000 reps]
+  @?= justSuffixes (suffixArray [take 1000 reps, take 2000 reps])
   ]
+
+reps :: [Int]
+reps = concatMap (\x -> replicate x x) [1..]
 
 actualLcp :: TestTree
 actualLcp = testGroup "test the actual implementation of LCP stuff"
@@ -72,6 +78,9 @@ actualLcp = testGroup "test the actual implementation of LCP stuff"
       \xs -> naiveLcpOne (xs :: [Int]) == justLcp (suffixArrayOne xs)
   , QC.testProperty "against naiveLcp" $
       \xs -> naiveLcp (xs :: [[Int]]) == justLcp (suffixArray xs)
+  , testCase "bunch of reps" $
+      naiveLcp [take 1000 reps, take 2000 reps, take 3000 reps]
+  @?= justLcp (suffixArray [take 1000 reps, take 2000 reps, take 3000 reps])
   ]
 
 distinct :: Ord a => [a] -> [a]
