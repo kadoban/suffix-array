@@ -55,7 +55,7 @@ prepare = concat . zipWith (\a b -> b ++ [a]) sentinals . map (map Alpha)
 
 -- | Convenience function to `prepare` a single string.
 prepareOne :: [a] -> [Alpha a]
-prepareOne = prepare . pure
+prepareOne = prepare . (:[])
 
 -- | A naively implemented suffix array implementation which will be used
 -- for correctness checking and possibly to benchmark against. Shouldn't
@@ -74,7 +74,7 @@ naive =
 -- worst case O(n^2 lg n) time
 -- (where n is the length of the string)
 naiveOne :: Ord a => [a] -> [Int]
-naiveOne = naive . pure
+naiveOne = naive . (:[])
 
 -- | A naively implemented LCP implementation, used for correctness
 -- testing the actual algorithm.
@@ -100,7 +100,7 @@ naiveLcp = (\xs -> zipWith lcp xs ([] : xs)) . sort . suffixes . prepare
 -- The LCP part is an extra O(n^2) in addition to the work of computing
 -- the suffix array in the first place.
 naiveLcpOne :: Ord a => [a] -> [Int]
-naiveLcpOne = naiveLcp . pure
+naiveLcpOne = naiveLcp . (:[])
 
 -- | Take a sorted list of elements and replace each value with an `Int`
 -- such that any comparisons between elements in the original list would

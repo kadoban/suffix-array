@@ -1,6 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE CPP #-}
 -- |
 -- Module      :  Data.SuffixArray
 -- Copyright   :  Joshua Simmons 2017
@@ -19,6 +20,12 @@ module Data.SuffixArray
 , justLcp
 , justSuffixes
 ) where
+
+#ifdef __GLASGOW_HASKELL__
+#if __GLASGOW_HASKELL__ < 710
+import           Control.Applicative
+#endif
+#endif
 
 import           Control.Monad (forM_, when)
 import           Control.Monad.ST (ST)
@@ -190,7 +197,7 @@ suffixArray xs = SuffixArray ss as lcp
 -- worst case O(n lg n) time
 -- (where n is the length of the string)
 suffixArrayOne :: Ord a => [a] -> SuffixArray a
-suffixArrayOne = suffixArray . pure
+suffixArrayOne = suffixArray . (:[])
 
 -- | Convenience function to just give a list of the suffixes in
 -- lexicographic order.
