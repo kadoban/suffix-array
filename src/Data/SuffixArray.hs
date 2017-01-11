@@ -55,7 +55,7 @@ type Arr s = STUArray s Int Int
 -- | Compute the suffix array of the given string(s) concatenated together
 -- with `Sentinal`s after each.
 --
--- O(n lg n) time
+-- worst case O(n lg n) time
 -- (where n is the sum of the string lengths + the number of strings)
 suffixArray :: Ord a => [[a]] -> SuffixArray a
 suffixArray xs = SuffixArray ss as lcp
@@ -153,7 +153,7 @@ suffixArray xs = SuffixArray ss as lcp
     -- http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.186.2185
     -- (several PDFs available free online)
     --
-    -- This runs in O(n) time
+    -- This runs in worst case O(n) time
     plcp = runSTUArray plcp'
     plcp' :: forall s. ST s (Arr s)
     plcp' = do
@@ -187,7 +187,7 @@ suffixArray xs = SuffixArray ss as lcp
 -- | Convenience function to compute the suffix array of a single string.
 -- (Still gets a `Sentinal` at the end)
 --
--- O(n lg n)
+-- worst case O(n lg n) time
 -- (where n is the length of the string)
 suffixArrayOne :: Ord a => [a] -> SuffixArray a
 suffixArrayOne = suffixArray . pure

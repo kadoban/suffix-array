@@ -59,9 +59,11 @@ prepareOne = prepare . pure
 
 -- | A naively implemented suffix array implementation which will be used
 -- for correctness checking and possibly to benchmark against. Shouldn't
--- usually be used in production code, as it is quite slow.
+-- usually be used in production code, as it is quite slow in the worst
+-- case. In cases with few identical suffixes, it can actually perform
+-- quite well. See benchmarks for some details.
 --
--- O(n^2 lg n)
+-- worst case O(n^2 lg n) time
 -- (where n is the sum of the string lengths + the number of strings)
 naive :: Ord a => [[a]] -> [Int]
 naive =
@@ -69,11 +71,10 @@ naive =
 
 -- | Convenience wrapper around `naive` for a single string.
 --
--- O(n^2 lg n)
+-- worst case O(n^2 lg n) time
 -- (where n is the length of the string)
 naiveOne :: Ord a => [a] -> [Int]
 naiveOne = naive . pure
-
 
 -- | A naively implemented LCP implementation, used for correctness
 -- testing the actual algorithm.
@@ -82,7 +83,7 @@ naiveOne = naive . pure
 -- each suffix and the previous suffix, with the suffixes in lexicographic
 -- order.
 --
--- O(n^2 lg n)
+-- worst case O(n^2 lg n) time
 -- (where n is the sum of the string lengths + the number of strings)
 --
 -- The LCP part is an extra O(n^2) in addition to the work of computing
@@ -93,7 +94,7 @@ naiveLcp = (\xs -> zipWith lcp xs ([] : xs)) . sort . suffixes . prepare
 
 -- | Convenience wrapper around `naiveLcp` for a single string.
 --
--- O(n^2 lg n)
+-- worst case O(n^2 lg n) time
 -- (where n is the length of the string)
 --
 -- The LCP part is an extra O(n^2) in addition to the work of computing
