@@ -26,7 +26,7 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [basics, naives, actual]
+tests = testGroup "Tests" [basics, naives, actual, actualLcp]
 
 basics :: TestTree
 basics = testGroup "tests of basic underlying utils and etc."
@@ -64,6 +64,14 @@ actual = testGroup "test the actual implementation to make sure it works"
       \xs -> naive (xs :: [[Int]]) == A.elems (toSuffixes (suffixArray xs))
   , testCase "[0]" $
       A.elems (toSuffixes $ suffixArrayOne [0]) @?= [1, 0]
+  ]
+
+actualLcp :: TestTree
+actualLcp = testGroup "test the actual implementation of LCP stuff"
+  [ QC.testProperty "against naiveLcpOne" $
+      \xs -> naiveLcpOne (xs :: [Int]) == justLcp (suffixArrayOne xs)
+  , QC.testProperty "against naiveLcp" $
+      \xs -> naiveLcp (xs :: [[Int]]) == justLcp (suffixArray xs)
   ]
 
 distinct :: Ord a => [a] -> [a]

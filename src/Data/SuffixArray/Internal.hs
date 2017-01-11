@@ -14,13 +14,15 @@ module Data.SuffixArray.Internal
 ( Alpha(..)
 , naive
 , naiveOne
+, naiveLcp
+, naiveLcpOne
 , prepare
 , prepareOne
 , rank
 , suffixes
 ) where
 
-import           Data.List (group, sortBy)
+import           Data.List (group, sort, sortBy)
 import           Data.Ord (comparing)
 
 -- | Yields the non-empty suffixes of a list in order of decreasing length.
@@ -71,6 +73,33 @@ naive =
 -- (where n is the length of the string)
 naiveOne :: Ord a => [a] -> [Int]
 naiveOne = naive . pure
+
+
+-- | A naively implemented LCP implementation, used for correctness
+-- testing the actual algorithm.
+--
+-- The Longest Common Prefix list gives the longest common prefix of
+-- each suffix and the previous suffix, with the suffixes in lexicographic
+-- order.
+--
+-- O(n^2 lg n)
+-- (where n is the sum of the string lengths + the number of strings)
+--
+-- The LCP part is an extra O(n^2) in addition to the work of computing
+-- the suffix array in the first place.
+naiveLcp :: Ord a => [[a]] -> [Int]
+naiveLcp = (\xs -> zipWith lcp xs ([] : xs)) . sort . suffixes . prepare
+  where lcp as bs = length . takeWhile id $ zipWith (==) as bs
+
+-- | Convenience wrapper around `naiveLcp` for a single string.
+--
+-- O(n^2 lg n)
+-- (where n is the length of the string)
+--
+-- The LCP part is an extra O(n^2) in addition to the work of computing
+-- the suffix array in the first place.
+naiveLcpOne :: Ord a => [a] -> [Int]
+naiveLcpOne = naiveLcp . pure
 
 -- | Take a sorted list of elements and replace each value with an `Int`
 -- such that any comparisons between elements in the original list would

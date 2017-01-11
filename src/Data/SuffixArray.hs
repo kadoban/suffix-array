@@ -11,7 +11,9 @@
 -- Suffix array library main module
 --
 module Data.SuffixArray
-( justSuffixes
+( justAlphas
+, justLcp
+, justSuffixes
 , SuffixArray(..)
 , suffixArray
 , suffixArrayOne
@@ -20,7 +22,7 @@ module Data.SuffixArray
 import           Control.Monad (forM_, when)
 import           Control.Monad.ST (ST)
 import qualified Data.Array.IArray as A
-import           Data.Array.IArray (Array)
+import           Data.Array.IArray (Array, (!))
 import           Data.Array.MArray ( newArray, newListArray, newArray_
                                    , readArray, writeArray)
 import           Data.Array.ST (STUArray, runSTUArray, getElems)
@@ -41,6 +43,9 @@ data SuffixArray a = SuffixArray
                        , toAlphas :: Array Int (Alpha a)
                          -- ^ The original string(s) with `Sentinal` values
                          -- included after each string.
+                       , toLcp :: UArray Int Int
+                         -- ^ Longest Common Prefix of each suffix with the
+                         -- previous one in lexicographic order
                        }
   deriving (Eq, Ord, Show)
 
@@ -52,7 +57,7 @@ type Arr s = STUArray s Int Int
 -- O(n lg n) time
 -- (where n is the sum of the string lengths + the number of strings)
 suffixArray :: Ord a => [[a]] -> SuffixArray a
-suffixArray xs = SuffixArray ss as
+suffixArray xs = SuffixArray ss as lcp
   where
     n = snd $ A.bounds as
     as = let ps = prepare xs
@@ -137,6 +142,28 @@ suffixArray xs = SuffixArray ss as
       if maxRank < n
         then go (k*2) s t r c -- double the size of the prefix we're sorting by
         else return s -- ranks are already unique for all, stop early
+    lcp = A.ixmap (0, n) (ss !) plcp
+    plcp = runSTUArray plcp'
+    plcp' :: forall s. ST s (Arr s)
+    plcp' = do
+      let first = ss ! 0
+      (prev :: Arr s) <- newArray_ (0, n)
+      forM_ [1 .. n] $ \i -> writeArray prev (ss ! i) (ss ! (i-1))
+      len <- newSTRef 0
+      res <- newArray_ (0, n)
+      forM_ [0 .. n] $ \i ->
+        if i == first -- no previous prefix
+          then writeSTRef len 0 >> writeArray res i 0
+          else do
+            len' <- readSTRef len
+            prev' <- readArray prev i
+            let suffixOff x = map (as !) [x ..]
+                newMatching = length . takeWhile id
+                            $ zipWith (==) (suffixOff (i + len'))
+                                           (suffixOff (prev' + len'))
+            writeArray res i (len' + newMatching)
+            writeSTRef len $ max 0 (len' + newMatching - 1)
+      return res
 
 -- | Convenience function to compute the suffix array of a single string.
 -- (Still gets a `Sentinal` at the end)
@@ -150,3 +177,14 @@ suffixArrayOne = suffixArray . pure
 -- lexicographic order.
 justSuffixes :: SuffixArray a -> [Int]
 justSuffixes = A.elems . toSuffixes
+
+-- | Convenience function to just give a list characters in the
+-- concatenated original strings.
+justAlphas :: SuffixArray a -> [Alpha a]
+justAlphas = A.elems . toAlphas
+
+-- | Convenience function to just give a list of the longest common
+-- prefix of every suffix with the previous suffix in lexicographic
+-- order.
+justLcp :: SuffixArray a -> [Int]
+justLcp = A.elems . toLcp
