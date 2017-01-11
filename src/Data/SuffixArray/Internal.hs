@@ -30,7 +30,7 @@ import           Data.Ord (comparing)
 -- This differs from `Data.List.tails` in that it does not include the
 -- empty list at the end.
 suffixes :: [a] -> [[a]]
-suffixes xxs@(x:xs) = xxs : suffixes xs
+suffixes xxs@(_:xs) = xxs : suffixes xs
 suffixes [] = []
 
 -- | A character in a string (or set of strings) we're going to compute the

@@ -12,7 +12,6 @@ module Main
 ) where
 
 import           Data.SuffixArray
-import           Data.SuffixArray.Internal
 
 main :: IO ()
 main = do

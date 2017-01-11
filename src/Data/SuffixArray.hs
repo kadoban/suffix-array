@@ -24,14 +24,14 @@ import           Control.Monad (forM_, when)
 import           Control.Monad.ST (ST)
 import qualified Data.Array.IArray as A
 import           Data.Array.IArray (Array, (!))
-import           Data.Array.MArray ( newArray, newListArray, newArray_
+import           Data.Array.MArray ( newListArray, newArray_
                                    , readArray, writeArray)
-import           Data.Array.ST (STUArray, runSTUArray, getElems)
+import           Data.Array.ST (STUArray, runSTUArray)
 import           Data.Array.Unboxed (UArray)
 import           Data.Array.Unsafe (unsafeFreeze)
 import           Data.List (sortBy)
 import           Data.Ord (comparing)
-import           Data.STRef ( STRef, newSTRef, readSTRef, writeSTRef
+import           Data.STRef ( newSTRef, readSTRef, writeSTRef
                             , modifySTRef')
 
 import           Data.SuffixArray.Internal
@@ -62,8 +62,8 @@ suffixArray xs = SuffixArray ss as lcp
   where
     n = snd $ A.bounds as
     as = let ps = prepare xs
-             n = length ps - 1
-          in A.listArray (0, n) ps
+             n' = length ps - 1
+          in A.listArray (0, n') ps
     -- we represent each suffix as the number of characters we have
     -- to drop from the original string to get that suffix
     --
@@ -76,8 +76,8 @@ suffixArray xs = SuffixArray ss as lcp
     -- Note: We actually don't care about the ordering of suffixes yet,
     -- it's just necessary to use the `rank` function.
     orderedByHead = sortBy (comparing snd) . zip [0 ..] $ A.elems as
-    ranked = let (as, bs) = unzip orderedByHead
-              in zip as (rank bs)
+    ranked = let (is, js) = unzip orderedByHead
+              in zip is (rank js)
     ss :: UArray Int Int
     ss = runSTUArray $ do
       s <- newListArray (0, n) (map fst ranked) -- the suffixes
@@ -100,7 +100,7 @@ suffixArray xs = SuffixArray ss as lcp
           -- counting sort of suffixes, from s into s'
           -- ordered by the rank of suffix i + x, for suffix x
           -- (that is, suffix x without its first i characters)
-          csort i s s' = do
+          csort i src dest = do
             forM_ [0 .. n] $ flip (writeArray c) 0 -- zero out the counts
             let f = getR i
             -- count how many of each rank there are
@@ -116,13 +116,13 @@ suffixArray xs = SuffixArray ss as lcp
               v <- readArray c x
               readSTRef soFar >>= writeArray c x
               modifySTRef' soFar (+v)
-            elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze s
+            elemsS <- (A.elems :: UArray Int Int -> [Int]) <$> unsafeFreeze src
             forM_ elemsS $ \x -> do
               r' <- f x -- rank of it
               idx <- readArray c r' -- where it goes, based on its rank
               writeArray c r' (idx + 1) -- next suffix with this rank goes
                                         -- one later
-              writeArray s' idx x
+              writeArray dest idx x
       csort k s t -- these two counting sorts comprise a radix sort of the
       csort 0 t s -- suffixes by their rank pairs
       -- now re-rank the suffixes in order
