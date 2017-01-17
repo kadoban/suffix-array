@@ -89,7 +89,8 @@ suffixArray xs = SuffixArray ss as lcp
     ss = runSTUArray $ do
       s <- newListArray (0, n) (map fst ranked) -- the suffixes
       r <- newArray_ (0, n) -- the rank of each suffix
-      forM_ ranked $ uncurry (writeArray r)
+      forM_ ranked $
+        uncurry (writeArray r)
       t <- newArray_ (0, n) -- scratch array
       c <- newArray_ (0, n) -- counts array
       go 1 s r t c
