@@ -155,7 +155,7 @@ suffixArray xs = SuffixArray ss as lcp
     -- PLCP, permuted LCP array which is in order by position instead of
     -- lexicographic order by the suffix being referred to.
     --
-    -- Algoritm is courtesy of the paper "Permuted Longest-Common-Prefix
+    -- Algorithm is courtesy of the paper "Permuted Longest-Common-Prefix
     -- Array" by Kärkkäinen, et al.
     -- http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.186.2185
     -- (several PDFs available free online)
