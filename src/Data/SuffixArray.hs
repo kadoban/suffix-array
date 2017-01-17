@@ -108,7 +108,8 @@ suffixArray xs = SuffixArray ss as lcp
           -- ordered by the rank of suffix i + x, for suffix x
           -- (that is, suffix x without its first i characters)
           csort i src dest = do
-            forM_ [0 .. n] $ flip (writeArray c) 0 -- zero out the counts
+            forM_ [0 .. n] $
+              flip (writeArray c) 0 -- zero out the counts
             let f = getR i
             -- count how many of each rank there are
             writeArray c 0 i -- takes care of all that would be automatically 0
@@ -168,7 +169,8 @@ suffixArray xs = SuffixArray ss as lcp
       -- order (the `first` one has none before it, so we treat it special)
       let first = ss ! 0
       (prev :: Arr s) <- newArray_ (0, n)
-      forM_ [1 .. n] $ \i -> writeArray prev (ss ! i) (ss ! (i-1))
+      forM_ [1 .. n] $ \i ->
+        writeArray prev (ss ! i) (ss ! (i-1))
       len <- newSTRef 0
       res <- newArray_ (0, n)
       forM_ [0 .. n] $ \i ->
